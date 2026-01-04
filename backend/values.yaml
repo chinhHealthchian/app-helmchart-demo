@@ -1,0 +1,223 @@
+# Default values for backend.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: chinhhealthchain3112/django-app
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "11"
+
+# Cấu hình command và args cho container chính (nếu muốn override CMD của Docker image)
+command: ["/bin/sh", "-c"]
+args:
+  - |
+    python manage.py migrate && daphne -b 0.0.0.0 -p 7575 config.asgi:application
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  port: 7575 # Port mà Service sẽ mở ra bên ngoài (Cluster)
+  targetPort: 7575 # Port mà Pod đang lắng nghe bên trong
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  # -- IngressClass that will be used to implement the Ingress.
+  # This is supported in Kubernetes 1.18+ and required if you have more than one Ingress controller in your cluster.
+  className: "nginx"
+  annotations:
+    # Add any annotations for your ingress controller here
+    # The rewrite-target annotation is removed to pass the full path to the service.
+    {}
+
+  backend:
+    enabled: true
+    host: "backend.chart-example.local"
+    path: "/"
+    pathType: Prefix
+    tls:
+      enabled: false
+      secretName: ""
+
+  flower:
+    enabled: true
+    host: "flower.chart-example.local"
+    path: "/"
+    pathType: Prefix
+    tls:
+      enabled: false
+      secretName: ""
+
+# -- Expose the service via gateway-api HTTPRoute
+# Requires Gateway API resources and suitable controller installed within the cluster
+# (see: https://gateway-api.sigs.k8s.io/guides/)
+httpRoute:
+  # HTTPRoute enabled.
+  enabled: false
+  # HTTPRoute annotations.
+  annotations: {}
+  # Which Gateways this Route is attached to.
+  parentRefs:
+    - name: gateway
+      sectionName: http
+      # namespace: default
+  # Hostnames matching HTTP header.
+  hostnames:
+    - chart-example.local
+  # List of rules and filters applied.
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /headers
+  #   filters:
+  #   - type: RequestHeaderModifier
+  #     requestHeaderModifier:
+  #       set:
+  #       - name: My-Overwrite-Header
+  #         value: this-is-the-only-value
+  #       remove:
+  #       - User-Agent
+  # - matches:
+  #   - path:
+  #       type: PathPrefix
+  #       value: /echo
+  #     headers:
+  #     - name: version
+  #       value: v2
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /admin/login/
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /admin/login/
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 5
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+  []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+  []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Cấu hình cho Celery Worker chạy cùng Pod
+celery:
+  enabled: true
+  command: ["celery", "-A", "config", "worker", "-l", "info"]
+  resources: {}
+
+# Cấu hình cho Flower (Celery Monitor) chạy cùng Pod
+flower:
+  enabled: true
+  command: ["celery", "-A", "config", "flower", "--port=5555"]
+  port: 5555
+  resources: {}
+
+# Biến môi trường dùng chung cho cả Django và Celery
+env:
+  DJANGO_SETTINGS_MODULE: "config.settings.base"
+  DJANGO_SECRET_KEY: "change-me"
+  DJANGO_DEBUG: "True"
+  DJANGO_ALLOWED_HOSTS: "*"
+  # Database: Sử dụng host.docker.internal để trỏ về máy Mac
+  POSTGRES_DB: "mydatabase"
+  POSTGRES_USER: "myuser"
+  POSTGRES_PASSWORD: "mypassword"
+  POSTGRES_HOST: "host.docker.internal"
+  POSTGRES_PORT: "5432"
+  # Keycloak
+  KEYCLOAK_SERVER_URL: "http://host.docker.internal:8081"
+  KEYCLOAK_REALM: "demo"
+  KEYCLOAK_CLIENT_ID: "django-backend"
+  KEYCLOAK_CLIENT_SECRET: "change-me"
+  # RabbitMQ
+  CELERY_BROKER_URL: "amqp://django:django_pass@host.docker.internal:5672//"

@@ -1,0 +1,61 @@
+{{- if and .Values.ingress.enabled .Values.ingress.backend.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "backend.fullname" . }}
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.backend.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.backend.host | quote }}
+      secretName: {{ .Values.ingress.backend.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.backend.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.backend.path }}
+            pathType: {{ .Values.ingress.backend.pathType }}
+            backend:
+              service:
+                name: {{ include "backend.fullname" . }}
+                port:
+                  name: http
+{{- end }}
+---
+{{- if and .Values.ingress.enabled .Values.ingress.flower.enabled .Values.flower.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "backend.fullname" . }}-flower
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.flower.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.flower.path }}
+            pathType: {{ .Values.ingress.flower.pathType }}
+            backend:
+              service:
+                name: {{ include "backend.fullname" . }}
+                port:
+                  name: flower
+{{- end }}
