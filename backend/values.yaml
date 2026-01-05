@@ -208,16 +208,16 @@ env:
   DJANGO_SECRET_KEY: "change-me"
   DJANGO_DEBUG: "True"
   DJANGO_ALLOWED_HOSTS: "*"
-  # Database: Sử dụng host.docker.internal để trỏ về máy Mac
+  # Database: Sử dụng localhost để trỏ về máy Mac
   POSTGRES_DB: "mydatabase"
   POSTGRES_USER: "myuser"
   POSTGRES_PASSWORD: "mypassword"
-  POSTGRES_HOST: "host.docker.internal"
+  POSTGRES_HOST: "localhost"
   POSTGRES_PORT: "5432"
   # Keycloak
-  KEYCLOAK_SERVER_URL: "http://host.docker.internal:8081"
+  KEYCLOAK_SERVER_URL: "http://localhost:8081"
   KEYCLOAK_REALM: "demo"
   KEYCLOAK_CLIENT_ID: "django-backend"
   KEYCLOAK_CLIENT_SECRET: "change-me"
   # RabbitMQ
-  CELERY_BROKER_URL: "amqp://django:django_pass@host.docker.internal:5672//"
+  CELERY_BROKER_URL: "amqp://django:django_pass@localhost:5672/"
