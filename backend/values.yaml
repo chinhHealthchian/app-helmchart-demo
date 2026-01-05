@@ -212,12 +212,12 @@ env:
   POSTGRES_DB: "mydatabase"
   POSTGRES_USER: "myuser"
   POSTGRES_PASSWORD: "mypassword"
-  POSTGRES_HOST: "localhost"
+  POSTGRES_HOST: "host-local"
   POSTGRES_PORT: "5432"
   # Keycloak
-  KEYCLOAK_SERVER_URL: "http://localhost:8081"
+  KEYCLOAK_SERVER_URL: "http://host-local:8081"
   KEYCLOAK_REALM: "demo"
   KEYCLOAK_CLIENT_ID: "django-backend"
   KEYCLOAK_CLIENT_SECRET: "change-me"
   # RabbitMQ
-  CELERY_BROKER_URL: "amqp://django:django_pass@localhost:5672/"
+  CELERY_BROKER_URL: "amqp://django:django_pass@host-local:5672/"
